@@ -37,6 +37,13 @@ using namespace std;
 #include <DirectXColors.h>
 #include <DirectXCollision.h>
 
+//추가---
+#include <d3d11on12.h>      // Direct3D 11 on 12 인터페이스
+#include <dwrite.h>         // DirectWrite 인터페이스
+#include <d2d1_3.h>         // Direct2D 1.3 인터페이스
+#include <vector>           // std::vector를 위한 헤더
+//------
+
 #include <Mmsystem.h>
 
 #ifdef _DEBUG
@@ -71,6 +78,11 @@ using Microsoft::WRL::ComPtr;
 #pragma comment(lib, "dxgi.lib")
 
 #pragma comment(lib, "dxguid.lib")
+
+//추가
+#pragma comment(lib, "d3d11.lib")      // Direct3D 11 라이브러리
+#pragma comment(lib, "dwrite.lib")
+#pragma comment(lib, "d2d1.lib")       // Direct2D 라이브러리
 
 // TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.
 
