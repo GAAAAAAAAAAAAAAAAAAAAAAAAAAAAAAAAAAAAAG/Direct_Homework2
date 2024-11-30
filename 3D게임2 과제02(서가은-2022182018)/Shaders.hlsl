@@ -435,9 +435,9 @@ float4 PSRiverTexture(VS_TEXTURED_OUTPUT input) : SV_TARGET
 	
     float4 BaseTextureColor = gtxtTerrainTexture.SampleLevel(gssWrap, uv * 20, 0);
     float4 DetailTextureColor = gtxtDetailTexture.SampleLevel(gssWrap, uv * 20, 0);
-    float4 Detail2TextureColor = gtxtAlphaTexture.SampleLevel(gssWrap, uv * 20, 0);
+    float4 Detail2TextureColor = gtxtAlphaTexture.SampleLevel(gssWrap, uv * 100, 0);
 
-    float4 color = lerp(BaseTextureColor * DetailTextureColor, Detail2TextureColor.r * 0.5f, 0.36f);
+    float4 color = lerp(BaseTextureColor * DetailTextureColor, Detail2TextureColor.r * 0.5f, 0.35f);
 	
     color.a = 0.71f;
 	

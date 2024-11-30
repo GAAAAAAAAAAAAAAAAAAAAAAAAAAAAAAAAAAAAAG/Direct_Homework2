@@ -102,6 +102,11 @@ public:
 	
 	//------------------
 
+	//Ãß°¡2---
+	int									m_nAliveGameObjects;
+	virtual int GetObjectCount() const;
+	//-------
+
 	CPlayer								*m_pPlayer = NULL;
 
 public:

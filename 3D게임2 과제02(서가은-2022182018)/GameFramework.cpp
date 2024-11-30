@@ -429,6 +429,27 @@ void CGameFramework::OnDestroy()
 
 void CGameFramework::BuildObjects()
 {
+#ifdef _WITH_DIRECT_WRITE_UI
+	m_pUILayer = new UILayer(m_nSwapChainBuffers, 1, m_pd3dDevice, m_pd3dCommandQueue, m_ppd3dSwapChainBackBuffers, m_nWndClientWidth, m_nWndClientHeight);
+
+	pd2dBrush = m_pUILayer->CreateBrush(D2D1::ColorF(D2D1::ColorF::Purple, 1.0f));
+	pdwTextFormat = m_pUILayer->CreateTextFormat(L"궁서체", m_nWndClientHeight / 15.0f);
+	d2dRect = D2D1::RectF(0.0f, 0.0f, (float)m_nWndClientWidth, (float)m_nWndClientHeight);
+
+	WCHAR pstrOutputText[256];
+	//wcscpy_s(pstrOutputText, 256, L"살아있는 적 : \n");
+	
+	swprintf_s(pstrOutputText, 256, L"게임 고?\n", 5);
+
+	m_pUILayer->UpdateTextOutputs(0, pstrOutputText, &d2dRect, pdwTextFormat, pd2dBrush);
+
+	/*pd2dBrush = m_pUILayer->CreateBrush(D2D1::ColorF(D2D1::ColorF::BlueViolet, 1.0f));
+	pdwTextFormat = m_pUILayer->CreateTextFormat(L"Arial", m_nWndClientHeight / 25.0f);
+	d2dRect = D2D1::RectF(0.0f, m_nWndClientHeight - 75.0f, (float)m_nWndClientWidth, (float)m_nWndClientHeight);
+
+	m_pUILayer->UpdateTextOutputs(1, NULL, &d2dRect, pdwTextFormat, pd2dBrush);*/
+#endif
+
 	m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
 	
 	// 기존 코드
@@ -482,6 +503,11 @@ void CGameFramework::BuildObjects()
 
 void CGameFramework::ReleaseObjects()
 {
+#ifdef _WITH_DIRECT_WRITE_UI
+	if (m_pUILayer) m_pUILayer->ReleaseResources();
+	if (m_pUILayer) delete m_pUILayer;
+#endif
+
 	if (m_pPlayer) m_pPlayer->Release();
 
 	for (int i = 0; i < 2; ++i)
@@ -571,6 +597,21 @@ void CGameFramework::MoveToNextFrame()
 	}
 }
 
+//추가-----
+#ifdef _WITH_DIRECT_WRITE_UI
+void CGameFramework::UpdateUI()
+{
+	/*CHAR pstrOutputText[256];
+	swprintf_s(pstrOutputText, 256, L"살아있는 적 : %d\n", 8);
+	m_pUILayer->UpdateTextOutputs(1, m_pszFrameRate, NULL, NULL, NULL);*/
+
+	WCHAR pstrOutputText[256];
+	swprintf_s(pstrOutputText, 256, L"살아있는 적 : %d\n", m_pScene[n_Scene]->GetObjectCount());
+	m_pUILayer->UpdateTextOutputs(0, pstrOutputText, &d2dRect, pdwTextFormat, pd2dBrush);
+}
+#endif
+//---------
+
 //#define _WITH_PLAYER_TOP
 
 void CGameFramework::FrameAdvance()
@@ -580,6 +621,11 @@ void CGameFramework::FrameAdvance()
 	ProcessInput();
 
     AnimateObjects();
+
+#ifdef _WITH_DIRECT_WRITE_UI
+	if(UIStart)
+		UpdateUI();
+#endif
 
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();
 	hResult = m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
@@ -634,6 +680,11 @@ void CGameFramework::FrameAdvance()
 	dxgiPresentParameters.pScrollOffset = NULL;
 	m_pdxgiSwapChain->Present1(1, 0, &dxgiPresentParameters);
 #else
+	//추가----
+#ifdef _WITH_DIRECT_WRITE_UI
+	m_pUILayer->Render(m_nSwapChainBufferIndex);
+#endif
+	//--------
 #ifdef _WITH_SYNCH_SWAPCHAIN
 	m_pdxgiSwapChain->Present(1, 0);
 #else
@@ -655,4 +706,5 @@ void CGameFramework::FrameAdvance()
 void CGameFramework::ChangeScene()
 {
 	n_Scene = (n_Scene + 1) % 2;
+	UIStart = true;
 }

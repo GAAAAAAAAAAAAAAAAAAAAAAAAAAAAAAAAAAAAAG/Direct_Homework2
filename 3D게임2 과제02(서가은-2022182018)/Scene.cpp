@@ -226,6 +226,7 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 	pObjectsShader->CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
 	pObjectsShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, NULL);
 	m_nSize = pObjectsShader->m_nObjects;
+	m_nAliveGameObjects = pObjectsShader->m_nObjects;
 	m_Objects = pObjectsShader->m_ppObjects;
 	
 	m_ppShaders[0] = pObjectsShader;
@@ -741,12 +742,18 @@ void CScene::CheckObjectByBulletCollisions()
 					ppBullets[j]->Reset();
 					m_ExplodeObjects[i]->SetPosition(m_Objects[i]->GetPosition());
 					m_ExplodeObjects[i]->live = true;
+					m_nAliveGameObjects--;
 				}
 				m_Objects[i]->live = false;
 				break;
 			}
 		}
 	}
+}
+
+int CScene::GetObjectCount() const
+{
+	return m_nAliveGameObjects;
 }
 
 //void CScene::CheckShieldByBulletCollisions()

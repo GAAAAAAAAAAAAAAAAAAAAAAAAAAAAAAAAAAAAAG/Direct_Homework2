@@ -41,7 +41,6 @@ using namespace std;
 #include <d3d11on12.h>      // Direct3D 11 on 12 인터페이스
 #include <dwrite.h>         // DirectWrite 인터페이스
 #include <d2d1_3.h>         // Direct2D 1.3 인터페이스
-#include <vector>           // std::vector를 위한 헤더
 //------
 
 #include <Mmsystem.h>
@@ -65,6 +64,9 @@ using Microsoft::WRL::ComPtr;
 #define _WITH_CB_WORLD_MATRIX_DESCRIPTOR_TABLE
 
 //#define _WITH_STANDARD_TEXTURE_MULTIPLE_PARAMETERS
+
+//추가
+#define _WITH_DIRECT_WRITE_UI
 
 #define PARAMETER_STANDARD_TEXTURE		3
 #ifdef _WITH_STANDARD_TEXTURE_MULTIPLE_PARAMETERS

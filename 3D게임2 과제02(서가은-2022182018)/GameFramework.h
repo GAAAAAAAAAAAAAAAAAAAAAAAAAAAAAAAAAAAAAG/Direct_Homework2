@@ -6,6 +6,11 @@
 #include "Timer.h"
 #include "Player.h"
 #include "Scene.h"
+#include "UILayer.h"
+
+//추가-
+class UILayer;
+//----
 
 class CGameFramework
 {
@@ -36,6 +41,12 @@ public:
 
 	void WaitForGpuComplete();
 	void MoveToNextFrame();
+
+	//추가-------
+#ifdef _WITH_DIRECT_WRITE_UI
+	void UpdateUI();
+#endif
+	//-----------
 
 	void OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	void OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
@@ -78,6 +89,18 @@ private:
 	CGameObject* m_pLockedObject = NULL;
 	//-------
 
+	//추가-------
+#ifdef _WITH_DIRECT_WRITE_UI
+
+	UILayer						*m_pUILayer = NULL;
+
+	ID2D1SolidColorBrush		*pd2dBrush;
+	IDWriteTextFormat			*pdwTextFormat;
+	D2D1_RECT_F					d2dRect;
+
+	bool						UIStart = false;
+#endif
+
 #if defined(_DEBUG)
 	ID3D12Debug					*m_pd3dDebugController;
 #endif
@@ -95,5 +118,6 @@ private:
 	POINT						m_ptOldCursorPos;
 
 	_TCHAR						m_pszFrameRate[70];
+	
 };
 
