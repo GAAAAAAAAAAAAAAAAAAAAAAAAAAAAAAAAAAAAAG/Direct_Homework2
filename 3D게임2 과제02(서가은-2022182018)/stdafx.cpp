@@ -7,6 +7,10 @@
 #include "DDSTextureLoader12.h"
 #include "WICTextureLoader12.h"
 
+//추가2---
+int gnCurrentParticles = 0;
+//--------
+
 UINT gnRtvDescriptorIncrementSize = 0;
 UINT gnDsvDescriptorIncrementSize = 0;
 UINT gnCbvSrvDescriptorIncrementSize = 0;
@@ -255,3 +259,10 @@ ID3D12Resource* CreateTexture2DResource(ID3D12Device* pd3dDevice, ID3D12Graphics
 	return(pd3dTexture);
 }
 
+//추가2
+void SwapResourcePointer(ID3D12Resource** ppd3dResourceA, ID3D12Resource** ppd3dResourceB)
+{
+	ID3D12Resource* pd3dTempResource = *ppd3dResourceA;
+	*ppd3dResourceA = *ppd3dResourceB;
+	*ppd3dResourceB = pd3dTempResource;
+}

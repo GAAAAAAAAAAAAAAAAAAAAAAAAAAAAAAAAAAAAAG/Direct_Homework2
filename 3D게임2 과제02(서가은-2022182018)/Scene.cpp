@@ -200,7 +200,7 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 	if (m_pDescriptorHeap == nullptr)
 	{
 		m_pDescriptorHeap = new CDescriptorHeap();
-		CreateCbvSrvDescriptorHeaps(pd3dDevice, 1, 100);
+		CreateCbvSrvDescriptorHeaps(pd3dDevice, 1, 150);
 	}
 
 	BuildDefaultLightsAndMaterials();
@@ -254,6 +254,12 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 	
 	m_ppShaders[3] = pRiverShader;
 
+	//추가 파티클
+	m_nParticleObjects = 1;
+	m_ppParticleObjects = new CParticleObject * [m_nParticleObjects];
+
+	m_ppParticleObjects[0] = new CParticleObject(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, XMFLOAT3(0.0f, -150.0f, 0.0f), XMFLOAT3(0.0f, 65.0f, 0.0f), 0.0f, XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(8.0f, 8.0f), MAX_PARTICLES);
+
 	//------------
 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
@@ -262,7 +268,8 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 void CScene::ReleaseObjects()
 {
 	if (m_pd3dGraphicsRootSignature) m_pd3dGraphicsRootSignature->Release();
-
+	//추가2
+	//if (m_pd3dCbvSrvDescriptorHeap) m_pd3dCbvSrvDescriptorHeap->Release();
 
 	if (m_ppShaders)
 	{
@@ -289,6 +296,13 @@ void CScene::ReleaseObjects()
 
 	// 추가
 	if (m_pTerrain) delete m_pTerrain;
+
+	//추가2
+	if (m_ppParticleObjects)
+	{
+		for (int i = 0; i < m_nParticleObjects; i++) delete m_ppParticleObjects[i];
+		delete[] m_ppParticleObjects;
+	}
 }
 
 void CScene::ReleaseCbvSrvUavDescriptorHeap(int num)
@@ -412,7 +426,7 @@ ID3D12RootSignature *CScene::CreateGraphicsRootSignature(ID3D12Device *pd3dDevic
 	pd3dRootParameters[10].DescriptorTable.pDescriptorRanges = &(pd3dDescriptorRanges[7]);
 	pd3dRootParameters[10].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 #else
-	D3D12_DESCRIPTOR_RANGE pd3dDescriptorRanges[5];
+	D3D12_DESCRIPTOR_RANGE pd3dDescriptorRanges[8];
 
 	pd3dDescriptorRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	pd3dDescriptorRanges[0].NumDescriptors = 7;
@@ -444,7 +458,26 @@ ID3D12RootSignature *CScene::CreateGraphicsRootSignature(ID3D12Device *pd3dDevic
 	pd3dDescriptorRanges[4].RegisterSpace = 0;
 	pd3dDescriptorRanges[4].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-	D3D12_ROOT_PARAMETER pd3dRootParameters[9];
+	//추가2
+	pd3dDescriptorRanges[5].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	pd3dDescriptorRanges[5].NumDescriptors = 1;
+	pd3dDescriptorRanges[5].BaseShaderRegister = 19; //t19: gtxtParticleTexture
+	pd3dDescriptorRanges[5].RegisterSpace = 0;
+	pd3dDescriptorRanges[5].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	pd3dDescriptorRanges[6].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	pd3dDescriptorRanges[6].NumDescriptors = 1;
+	pd3dDescriptorRanges[6].BaseShaderRegister = 20; //t20: gRandomBuffer
+	pd3dDescriptorRanges[6].RegisterSpace = 0;
+	pd3dDescriptorRanges[6].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	pd3dDescriptorRanges[7].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	pd3dDescriptorRanges[7].NumDescriptors = 1;
+	pd3dDescriptorRanges[7].BaseShaderRegister = 21; //t21: gRandomSphereBuffer
+	pd3dDescriptorRanges[7].RegisterSpace = 0;
+	pd3dDescriptorRanges[7].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	D3D12_ROOT_PARAMETER pd3dRootParameters[12];
 
 	pd3dRootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	pd3dRootParameters[0].Descriptor.ShaderRegister = 1; //Camera
@@ -452,6 +485,7 @@ ID3D12RootSignature *CScene::CreateGraphicsRootSignature(ID3D12Device *pd3dDevic
 	pd3dRootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
 	pd3dRootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	//pd3dRootParameters[1].Constants.Num32BitValues = 33;
 	pd3dRootParameters[1].Constants.Num32BitValues = 33;
 	pd3dRootParameters[1].Constants.ShaderRegister = 2; //GameObject
 	pd3dRootParameters[1].Constants.RegisterSpace = 0;
@@ -483,7 +517,8 @@ ID3D12RootSignature *CScene::CreateGraphicsRootSignature(ID3D12Device *pd3dDevic
 	pd3dRootParameters[6].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	pd3dRootParameters[7].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;	//b3
-	pd3dRootParameters[7].Constants.Num32BitValues = 4;
+	//pd3dRootParameters[7].Constants.Num32BitValues = 4;
+	pd3dRootParameters[7].Constants.Num32BitValues = 10;
 	pd3dRootParameters[7].Constants.ShaderRegister = 3;
 	pd3dRootParameters[7].Constants.RegisterSpace = 0;
 	pd3dRootParameters[7].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
@@ -492,6 +527,21 @@ ID3D12RootSignature *CScene::CreateGraphicsRootSignature(ID3D12Device *pd3dDevic
 	pd3dRootParameters[8].DescriptorTable.NumDescriptorRanges = 1;
 	pd3dRootParameters[8].DescriptorTable.pDescriptorRanges = &(pd3dDescriptorRanges[4]);
 	pd3dRootParameters[8].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	pd3dRootParameters[9].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;	// t19: Particletexture
+	pd3dRootParameters[9].DescriptorTable.NumDescriptorRanges = 1;
+	pd3dRootParameters[9].DescriptorTable.pDescriptorRanges = &(pd3dDescriptorRanges[5]);
+	pd3dRootParameters[9].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	pd3dRootParameters[10].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;	// RandomBuffer
+	pd3dRootParameters[10].DescriptorTable.NumDescriptorRanges = 1;
+	pd3dRootParameters[10].DescriptorTable.pDescriptorRanges = &(pd3dDescriptorRanges[6]);
+	pd3dRootParameters[10].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
+	pd3dRootParameters[11].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;	// RandomSphereBuffer
+	pd3dRootParameters[11].DescriptorTable.NumDescriptorRanges = 1;
+	pd3dRootParameters[11].DescriptorTable.pDescriptorRanges = &(pd3dDescriptorRanges[7]);
+	pd3dRootParameters[11].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 #endif
 
 	D3D12_STATIC_SAMPLER_DESC pd3dSamplerDescs[2];
@@ -522,7 +572,7 @@ ID3D12RootSignature *CScene::CreateGraphicsRootSignature(ID3D12Device *pd3dDevic
 	pd3dSamplerDescs[1].RegisterSpace = 0;
 	pd3dSamplerDescs[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-	D3D12_ROOT_SIGNATURE_FLAGS d3dRootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+	D3D12_ROOT_SIGNATURE_FLAGS d3dRootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_ALLOW_STREAM_OUTPUT;
 	D3D12_ROOT_SIGNATURE_DESC d3dRootSignatureDesc;
 	::ZeroMemory(&d3dRootSignatureDesc, sizeof(D3D12_ROOT_SIGNATURE_DESC));
 	d3dRootSignatureDesc.NumParameters = _countof(pd3dRootParameters);
@@ -558,6 +608,10 @@ void CScene::UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList)
 	pd3dCommandList->SetGraphicsRoot32BitConstants(7, 1, &m_currentTime, 0);
 	pd3dCommandList->SetGraphicsRoot32BitConstants(7, 1, &m_ElapsedTime, 1);
 	pd3dCommandList->SetGraphicsRoot32BitConstants(7, 1, &gfWheel, 2);
+	pd3dCommandList->SetGraphicsRoot32BitConstants(7, 3, &gf3Gravity, 4);
+	pd3dCommandList->SetGraphicsRoot32BitConstants(7, 1, &gfSecondsPerFirework, 7);
+	pd3dCommandList->SetGraphicsRoot32BitConstants(7, 1, &gnFlareParticlesToEmit, 8);
+	pd3dCommandList->SetGraphicsRoot32BitConstants(7, 1, &gnMaxFlareType2Particles, 9);
 
 }
 
@@ -580,6 +634,10 @@ void CScene::ReleaseUploadBuffers()
 
 	for (int i = 0; i < m_nShaders; i++) m_ppShaders[i]->ReleaseUploadBuffers();
 	//for (int i = 0; i < m_nGameObjects; i++) m_ppGameObjects[i]->ReleaseUploadBuffers();
+
+	//추가2//
+	for (int i = 0; i < m_nParticleObjects; i++) m_ppParticleObjects[i]->ReleaseUploadBuffers();
+	//
 }
 
 bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -627,6 +685,11 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	/*if (m_nGameObjects > 1)
 		int i = 1;*/
 
+	/*if (!mbClear && m_nAliveGameObjects == 0)
+	{
+		mbClear = true;
+	}*/
+
 	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Animate(fTimeElapsed, NULL);
 	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->UpdateTransform(NULL);
 
@@ -641,6 +704,10 @@ void CScene::AnimateObjects(float fTimeElapsed)
 		m_pLights[1].m_xmf3Position = m_pPlayer->GetPosition();
 		m_pLights[1].m_xmf3Direction = m_pPlayer->GetLookVector();
 	}
+
+	//추가2//
+	//for (int i = 0; i < m_nParticleObjects; i++) m_ppParticleObjects[i]->Animate(pCamera, fTimeElapsed);
+	////
 
 	//추가
 	CheckObjectByBulletCollisions();//오브젝트와 총알의 충돌을 검사
@@ -743,6 +810,7 @@ void CScene::CheckObjectByBulletCollisions()
 					m_ExplodeObjects[i]->SetPosition(m_Objects[i]->GetPosition());
 					m_ExplodeObjects[i]->live = true;
 					m_nAliveGameObjects--;
+					
 				}
 				m_Objects[i]->live = false;
 				break;
@@ -793,6 +861,18 @@ int CScene::GetObjectCount() const
 //	}
 //}
 //-------------------------------------------
+
+//추가2////////////////////////
+void CScene::RenderParticle(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
+{
+	for (int i = 0; i < m_nParticleObjects; i++) m_ppParticleObjects[i]->Render(pd3dCommandList, pCamera);
+}
+
+void CScene::OnPostRenderParticle()
+{
+	for (int i = 0; i < m_nParticleObjects; i++) m_ppParticleObjects[i]->OnPostRender();
+}
+///////////////////////////////
 
 //추가-----------------------------------------
 // 시도 -----------------------------------------------------------------------

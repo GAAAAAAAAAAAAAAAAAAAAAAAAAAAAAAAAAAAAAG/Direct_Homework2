@@ -21,6 +21,9 @@ private:
 protected:
 	ID3DBlob*							m_pd3dVertexShaderBlob = NULL;
 	ID3DBlob*							m_pd3dPixelShaderBlob = NULL;
+	//추가2//
+	ID3DBlob*							m_pd3dGeometryShaderBlob = NULL;
+	////////
 
 	int									m_nPipelineStates = 0;
 	ID3D12PipelineState**				m_ppd3dPipelineStates = NULL;
@@ -38,9 +41,13 @@ public:
 
 	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
 	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
-	//추가--
+	//추가2/
+	virtual D3D12_SHADER_BYTECODE CreateGeometryShader();
+	virtual D3D12_STREAM_OUTPUT_DESC CreateStreamOuputState();
+
+	void CreateCbvSrvDescriptorHeaps(ID3D12Device* pd3dDevice, int nConstantBufferViews, int nShaderResourceViews);
+	///////
 	
-	///---
 
 	D3D12_SHADER_BYTECODE CompileShaderFromFile(WCHAR *pszFileName, LPCSTR pszShaderName, LPCSTR pszShaderProfile, ID3DBlob **ppd3dShaderBlob);
 	D3D12_SHADER_BYTECODE ReadCompiledShaderFromFile(WCHAR *pszFileName, ID3DBlob **ppd3dShaderBlob=NULL);
@@ -275,4 +282,65 @@ public:
 
 	virtual void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, void* pContext = NULL);
 
+};
+
+//추가2
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+class CTexturedShader : public CShader
+{
+public:
+	CTexturedShader();
+	virtual ~CTexturedShader();
+
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout(int nPipelineState);
+
+	//virtual void CreateGraphicsPipelineState(ID3D12Device* pd3dDevice, ID3D12RootSignature* pd3dGraphicsRootSignature, int nPipelineState);
+	virtual void CreateShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature);
+
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
+protected:
+	int nPipelines = 0;
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+class CBillboardShader : public CTexturedShader
+{
+public:
+	CBillboardShader();
+	virtual ~CBillboardShader();
+
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
+
+	virtual D3D12_RASTERIZER_DESC CreateRasterizerState();
+	virtual D3D12_BLEND_DESC CreateBlendState();
+};
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+class CParticleShader : public CBillboardShader
+{
+public:
+	CParticleShader();
+	virtual ~CParticleShader();
+
+	virtual D3D12_PRIMITIVE_TOPOLOGY_TYPE GetPrimitiveTopologyType();
+	virtual UINT GetNumRenderTargets();
+	virtual DXGI_FORMAT GetRTVFormat();
+	virtual DXGI_FORMAT GetDSVFormat();
+
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+	virtual D3D12_SHADER_BYTECODE CreateGeometryShader();
+	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
+
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+	virtual D3D12_STREAM_OUTPUT_DESC CreateStreamOuputState();
+	virtual D3D12_BLEND_DESC CreateBlendState();
+	virtual D3D12_DEPTH_STENCIL_DESC CreateDepthStencilState();
+
+	virtual void CreateGraphicsPipelineState(ID3D12Device* pd3dDevice, ID3D12RootSignature* pd3dGraphicsRootSignature, int nPipelineState);
+
+	void CreatePipelineState(ID3D12Device* pd3dDevice, ID3D12RootSignature* pd3dGraphicsRootSignature, int nPipelineState);
 };

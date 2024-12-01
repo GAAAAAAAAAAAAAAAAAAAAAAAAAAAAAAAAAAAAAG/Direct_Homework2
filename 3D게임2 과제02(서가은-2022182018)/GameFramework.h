@@ -12,6 +12,16 @@
 class UILayer;
 //----
 
+struct CB_FRAMEWORK_INFO
+{
+	float					m_fCurrentTime;
+	float					m_fElapsedTime;
+	float					m_fSecondsPerFirework = 1.0f;
+	int						m_nFlareParticlesToEmit = 300;
+	XMFLOAT3				m_xmf3Gravity = XMFLOAT3(0.0f, -9.8f, 0.0f);
+	int						m_nMaxFlareType2Particles = 150;
+};
+
 class CGameFramework
 {
 public:
@@ -32,12 +42,12 @@ public:
 
 	void ChangeSwapChainState();
 
-    void BuildObjects();
-    void ReleaseObjects();
+	void BuildObjects();
+	void ReleaseObjects();
 
-    void ProcessInput();
-    void AnimateObjects();
-    void FrameAdvance();
+	void ProcessInput();
+	void AnimateObjects();
+	void FrameAdvance();
 
 	void WaitForGpuComplete();
 	void MoveToNextFrame();
@@ -54,16 +64,22 @@ public:
 
 	// 추가 시도
 	void ChangeScene();
+
+	//추가2
+	void CreateShaderVariables();
+	void UpdateShaderVariables();
+	void ReleaseShaderVariables();
+	//
 private:
 	HINSTANCE					m_hInstance;
-	HWND						m_hWnd; 
+	HWND						m_hWnd;
 
 	int							m_nWndClientWidth;
 	int							m_nWndClientHeight;
-        
-	IDXGIFactory4				*m_pdxgiFactory = NULL;
-	IDXGISwapChain3				*m_pdxgiSwapChain = NULL;
-	ID3D12Device				*m_pd3dDevice = NULL;
+
+	IDXGIFactory4* m_pdxgiFactory = NULL;
+	IDXGISwapChain3* m_pdxgiSwapChain = NULL;
+	ID3D12Device* m_pd3dDevice = NULL;
 
 	bool						m_bMsaa4xEnable = false;
 	UINT						m_nMsaa4xQualityLevels = 0;
@@ -71,17 +87,23 @@ private:
 	static const UINT			m_nSwapChainBuffers = 2;
 	UINT						m_nSwapChainBufferIndex;
 
-	ID3D12Resource				*m_ppd3dSwapChainBackBuffers[m_nSwapChainBuffers];
-	ID3D12DescriptorHeap		*m_pd3dRtvDescriptorHeap = NULL;
+	ID3D12Resource* m_ppd3dSwapChainBackBuffers[m_nSwapChainBuffers];
+	ID3D12DescriptorHeap* m_pd3dRtvDescriptorHeap = NULL;
+	
+	//추가2
+	UINT						m_nRtvDescriptorIncrementSize;
+	UINT						m_nDsvDescriptorIncrementSize;
 
-	ID3D12Resource				*m_pd3dDepthStencilBuffer = NULL;
-	ID3D12DescriptorHeap		*m_pd3dDsvDescriptorHeap = NULL;
+	//
 
-	ID3D12CommandAllocator		*m_pd3dCommandAllocator = NULL;
-	ID3D12CommandQueue			*m_pd3dCommandQueue = NULL;
-	ID3D12GraphicsCommandList	*m_pd3dCommandList = NULL;
+	ID3D12Resource* m_pd3dDepthStencilBuffer = NULL;
+	ID3D12DescriptorHeap* m_pd3dDsvDescriptorHeap = NULL;
 
-	ID3D12Fence					*m_pd3dFence = NULL;
+	ID3D12CommandAllocator* m_pd3dCommandAllocator = NULL;
+	ID3D12CommandQueue* m_pd3dCommandQueue = NULL;
+	ID3D12GraphicsCommandList* m_pd3dCommandList = NULL;
+
+	ID3D12Fence* m_pd3dFence = NULL;
 	UINT64						m_nFenceValues[m_nSwapChainBuffers];
 	HANDLE						m_hFenceEvent;
 
@@ -92,32 +114,36 @@ private:
 	//추가-------
 #ifdef _WITH_DIRECT_WRITE_UI
 
-	UILayer						*m_pUILayer = NULL;
+	UILayer* m_pUILayer = NULL;
 
-	ID2D1SolidColorBrush		*pd2dBrush;
-	IDWriteTextFormat			*pdwTextFormat;
+	ID2D1SolidColorBrush* pd2dBrush;
+	IDWriteTextFormat* pdwTextFormat;
 	D2D1_RECT_F					d2dRect;
 
 	bool						UIStart = false;
 #endif
 
 #if defined(_DEBUG)
-	ID3D12Debug					*m_pd3dDebugController;
+	ID3D12Debug* m_pd3dDebugController;
 #endif
 
 	CGameTimer					m_GameTimer;
 
-	CScene						*m_pScene[2];
+	CScene* m_pScene[2];
 	int							n_Scene{};
-	CPlayer						*m_pPlayer = NULL;
-	CCamera						*m_pCamera = NULL;
+	CPlayer* m_pPlayer = NULL;
+	CCamera* m_pCamera = NULL;
 
-	CShader						*m_menu = NULL;
+	CShader* m_menu = NULL;
 	bool						is_visiblity = false;
 
 	POINT						m_ptOldCursorPos;
 
 	_TCHAR						m_pszFrameRate[70];
 	
+	//추가2
+	protected:
+		ID3D12Resource* m_pd3dcbFrameworkInfo = NULL;
+		CB_FRAMEWORK_INFO* m_pcbMappedFrameworkInfo = NULL;
 };
 

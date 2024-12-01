@@ -91,7 +91,10 @@ public:
 	bool ProcessInput(UCHAR *pKeysBuffer);
     void AnimateObjects(float fTimeElapsed);
     virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera=NULL);
-
+	//추가2/////
+	void RenderParticle(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
+	void OnPostRenderParticle();
+	///////////
 	void ReleaseUploadBuffers();
 
 	//-----추가---------
@@ -136,12 +139,25 @@ public:
 
 	float								gfWheel = 0.0f;
 	//--------
+	//추가2
+	XMFLOAT3							gf3Gravity = { 0.0f, -9.8f, 0.0f };
+	float								gfSecondsPerFirework = 1.0f;
+	int									gnFlareParticlesToEmit = 150;
+	int									gnMaxFlareType2Particles = 300;
+	//
 
 	CGameObject** m_Objects = nullptr;
 	int			m_nSize = 0;
 
 	CGameObject** m_ExplodeObjects = nullptr;
 	int			m_nExplodeSize = 0;
+
+	//추가2
+	CParticleObject**					m_ppParticleObjects = NULL;
+	int									m_nParticleObjects = 0;
+	//
+
+	bool								mbClear = false;
 
 public:
 	static CDescriptorHeap*				m_pDescriptorHeap;
