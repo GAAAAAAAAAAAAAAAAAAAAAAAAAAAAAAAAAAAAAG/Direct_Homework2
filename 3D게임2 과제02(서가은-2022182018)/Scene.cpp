@@ -612,7 +612,6 @@ void CScene::UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList)
 	pd3dCommandList->SetGraphicsRoot32BitConstants(7, 1, &gfSecondsPerFirework, 7);
 	pd3dCommandList->SetGraphicsRoot32BitConstants(7, 1, &gnFlareParticlesToEmit, 8);
 	pd3dCommandList->SetGraphicsRoot32BitConstants(7, 1, &gnMaxFlareType2Particles, 9);
-
 }
 
 void CScene::ReleaseShaderVariables()

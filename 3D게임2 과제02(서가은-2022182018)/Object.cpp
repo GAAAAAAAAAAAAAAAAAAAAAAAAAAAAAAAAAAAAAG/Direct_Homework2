@@ -1304,7 +1304,8 @@ void CExplodeObject::Animate(float fDeltaTime, XMFLOAT4X4* pxmf4x4Parent)
 	//TODO: lifeTime이 긑나면 다시 live 를 FALSE로
 	if (live)
 	{
-		lifeTime -= fDeltaTime;
+		//lifeTime -= fDeltaTime;
+		lifeTime -= fDeltaTime * 0.1;
 		m_NowTime += fDeltaTime;
 		if(lifeTime < 0.0f)
 			live = false;
